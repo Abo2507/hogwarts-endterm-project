@@ -1,17 +1,103 @@
-## Bonus Task – Caching Layer
+# BONUS TASK — Caching Layer Implementation
 
-An in-memory cache was implemented using the Singleton pattern.
+## 📌 Overview
+In-memory caching system using **Singleton pattern** for the Hogwarts Management API.
+Caches frequently accessed data to improve performance and reduce database queries.
 
-Frequently requested data (getAllStudents) is cached to avoid repeated database queries.
+---
 
-Features:
-- Cache HIT / MISS detection
-- Automatic invalidation after create, update, delete
-- Manual cache management via admin endpoints
-- Thread-safe implementation using ConcurrentHashMap
+## ✅ Requirements Checklist
 
-Performance improvement:
-Repeated GET requests avoid database calls and return cached data.
+| Requirement | Status | Implementation |
+|-------------|--------|----------------|
+| In-memory cache (Map) | ✅ | `ConcurrentHashMap<String, CacheEntry>` |
+| Cache commonly used method | ✅ | `getAllStudents()` and `getAllHouses()` |
+| Avoid repeated DB queries | ✅ | Cache HIT returns data without SQL |
+| Singleton pattern | ✅ | `CacheService.getInstance()` |
+| Manual cache clearing | ✅ | 4 admin endpoints |
+| Auto-invalidation | ✅ | On create/update/delete operations |
+| SOLID principles | ✅ | SRP, OCP, DIP followed |
+| Layered architecture | ✅ | Cache in Service layer only |
+
+---
+
+ 
+ ##  Files Created/Modified
+
+### New Files (2)
+1. **`CacheService.java`** → `src/main/java/kz/hogwarts/patterns/singleton/`
+   - Singleton cache instance
+   - Thread-safe using `ConcurrentHashMap`
+   - Methods: `get()`, `put()`, `evict()`, `clear()`
+
+2. **`AdminController.java`** → `src/main/java/kz/hogwarts/controller/`
+   - Manual cache management endpoints
+   - Stats, clear, check operations
+
+### Modified Files (2)
+3. **`StudentService.java`** → Added caching to `getAllStudents()`
+4. **`HouseService.java`** → Added caching to `getAllHouses()` and `getHouseById()`
+
+---
+
+## Testing Instructions
+
+### Test 1: Verify Cache HIT/MISS
+```bash
+# Terminal 1: Start application and watch logs
+mvn spring-boot:run
+
+# Terminal 2: Send requests
+curl http://localhost:8080/api/students  # First request
+curl http://localhost:8080/api/students  # Second request
+```
+
+**Expected Logs:**
+```
+[DEBUG] Cache MISS: students:all
+[DEBUG] Fetching all students          ← SQL executed
+[DEBUG] Cache PUT: students:all (size: 1)
+
+[DEBUG] Cache HIT: students:all        ← No SQL! Data from cache
+```
+
+### Test 2: Verify Auto-Invalidation
+```bash
+# 1. Populate cache
+curl http://localhost:8080/api/students
+
+# 2. Create new student
+curl -X POST http://localhost:8080/api/students \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Luna Lovegood","age":15,"year":5,"houseId":3}'
+
+# 3. Request again
+curl http://localhost:8080/api/students
+```
+
+**Expected Logs:**
+```
+[DEBUG] Cache HIT: students:all
+[INFO] Created student with id: 5
+[INFO] Cache EVICT BY PREFIX: students: (1 entries removed)
+[DEBUG] Cache MISS: students:all       ← Cache was cleared!
+```
+
+### Test 3: Manual Cache Management
+```bash
+# Check cache stats
+curl http://localhost:8080/api/admin/cache/stats
+
+# Clear entire cache
+curl -X DELETE http://localhost:8080/api/admin/cache/clear
+
+# Verify empty
+curl http://localhost:8080/api/admin/cache/stats
+# Output: "cacheSize": 0
+```
+
+---
+
 
 
 
