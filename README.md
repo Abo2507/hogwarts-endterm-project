@@ -1,23 +1,21 @@
 # BONUS TASK — Caching Layer Implementation
 
-## 📌 Overview
+## Overview
 In-memory caching system using **Singleton pattern** for the Hogwarts Management API.
 Caches frequently accessed data to improve performance and reduce database queries.
 
 ---
 
-## ✅ Requirements Checklist
+## Bonus Cache Implementation Checklist
 
-| Requirement | Status | Implementation |
-|-------------|--------|----------------|
-| In-memory cache (Map) | ✅ | `ConcurrentHashMap<String, CacheEntry>` |
-| Cache commonly used method | ✅ | `getAllStudents()` and `getAllHouses()` |
-| Avoid repeated DB queries | ✅ | Cache HIT returns data without SQL |
-| Singleton pattern | ✅ | `CacheService.getInstance()` |
-| Manual cache clearing | ✅ | 4 admin endpoints |
-| Auto-invalidation | ✅ | On create/update/delete operations |
-| SOLID principles | ✅ | SRP, OCP, DIP followed |
-| Layered architecture | ✅ | Cache in Service layer only |
+-  Thread-safe cache storage — `ConcurrentHashMap` used for safe concurrent access  
+-  Singleton cache instance — Lazy initialization with synchronized `getInstance()`  
+-  Cache entry wrapper — `CacheEntry` class with timestamp  
+-  Cache HIT / MISS logging — Logged via `LoggingService`  
+-  Prefix-based eviction — `evictByPrefix(String prefix)` method  
+-  Full cache clearing — `clear()` method for admin control  
+-  Cache statistics — `getStats()` returns size and keys  
+-  Service-layer integration — Cache used only inside business layer  
 
 ---
 
